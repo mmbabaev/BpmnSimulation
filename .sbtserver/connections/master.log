@@ -1,0 +1,13 @@
+New log file opened at Tue Jul 07 15:33:49 MSK 2015 by 5061@Air-Mihail.lingnet
+Taking next connection to: 60758
+New client attempting to connect on port: 60759-60758
+  Address = /192.168.1.82:60758
+This client on port 60759 has uuid 44a55bce-56ad-4e37-a391-f3d6976e91b9 configName activator humanReadableName Activator protocolVersion 3 featureTags Vector()
+Connected Clients: activator-44a55bce-56ad-4e37-a391-f3d6976e91b9
+Taking next connection to: 60758
+Checking to see if clients are empty...
+No non-daemon clients connected after 3 min. Shutting down.
+Server socket thread exiting.
+0 clients open, will close them...
+All client sockets have been closed.
+Closing the 5061@Air-Mihail.lingnet logs at Tue Jul 07 15:36:51 MSK 2015, goodbye.
