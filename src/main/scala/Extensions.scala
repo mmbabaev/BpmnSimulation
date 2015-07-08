@@ -13,7 +13,18 @@ import scala.collection.mutable.ArrayBuffer
 
 
 object Extensions {
+
+  implicit class StringExtension(s: String) {
+    def containsOneSpace(): Boolean = {
+      s.contains(' ') && (s.lastIndexOf(' ') == s.indexOf(' '))
+    }
+  }
+
+
+
+
   def loadDictionary(model: BpmnModelInstance) = {
+    allFlows = ArrayBuffer[SequenceFlow]()
     globalModel = model
     val flowType = model.getModel.getType(classOf[SequenceFlow])
     val flows = model.getModelElementsByType(flowType).toArray
@@ -22,6 +33,7 @@ object Extensions {
       allFlows.append(flow)
       dictionary.put(flow.getSource.getId, flow.getTarget)
     }
+
     println("cycle")
   }
 

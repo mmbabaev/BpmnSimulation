@@ -52,6 +52,7 @@ class ClientActor(startEvent: StartEvent) extends Actor {
       sender ! FsmCommands.End
       println("End process (Client)")
     }
+
     case message: String => println(message)
   }
 }
