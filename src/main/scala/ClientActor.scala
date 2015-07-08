@@ -1,8 +1,8 @@
 import java.io.File
 
 import akka.actor.{Props, FSM, Actor}
-import org.camunda.bpm.model.bpmn.Bpmn
-import org.camunda.bpm.model.bpmn.instance.{ExclusiveGateway, StartEvent, FlowNode}
+import org.camunda.bpm.model.bpmn.Bpmn._
+import org.camunda.bpm.model.bpmn.instance.{Task, ExclusiveGateway, StartEvent, FlowNode}
 import Extensions._
 /**
  * Created by Mihail on 05.07.15.
@@ -14,12 +14,12 @@ object ClientActor {
 class ClientActor(startEvent: StartEvent) extends Actor {
 
   var fsm = context.actorOf(Props(new BpmnProcessFSM(startEvent)))
-  fsm ! Commands.StartFSM
+  fsm ! FsmCommands.StartFSM
   println("Client actor loaded!")
 
   def receive = {
 
-    case Commands.StartTask(task) => {
+    case FsmCommands.StartTask(task) => {
       println("You must complete task: " + task.getName)
 
 
@@ -31,25 +31,25 @@ class ClientActor(startEvent: StartEvent) extends Actor {
           }
 
           var command = Console.readLine
-          fsm ! Commands.WayChosen(command)
+          fsm ! FsmCommands.WayChosen(command)
         }
 
         case _ => {
           println("Type done")
           var command = Console.readLine
           if (command == "done") {
-            fsm ! Commands.TaskComplete
+            fsm ! FsmCommands.TaskComplete
           }
           else {
             println("Incorrect command!")
-            self ! Commands.StartTask(task)
+            self ! FsmCommands.StartTask(task)
           }
         }
       }
     }
 
-    case Commands.End => {
-      sender ! Commands.End
+    case FsmCommands.End => {
+      sender ! FsmCommands.End
       println("End process (Client)")
     }
     case message: String => println(message)
