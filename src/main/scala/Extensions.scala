@@ -1,6 +1,7 @@
 import java.util
 
 import org.camunda.bpm.model.bpmn.BpmnModelInstance
+import org.camunda.bpm.model.bpmn.impl.instance.FlowNodeRef
 import org.camunda.bpm.model.bpmn.instance._
 import org.camunda.bpm.model.xml.instance.ModelElementInstance
 
@@ -21,8 +22,6 @@ object Extensions {
   }
 
 
-
-
   def loadDictionary(model: BpmnModelInstance) = {
     allFlows = ArrayBuffer[SequenceFlow]()
     globalModel = model
@@ -41,19 +40,44 @@ object Extensions {
   var globalModel: BpmnModelInstance = null
   var dictionary = new util.HashMap[String, FlowNode]()
 
+  implicit class FlowNodeExtension(node: FlowNode) {
+    def getLaneName: String = {
+      val process = node.getParentElement.asInstanceOf[org.camunda.bpm.model.bpmn.instance.Process]
+
+      val lanes = process.getLaneSets.toArray()(0).asInstanceOf[LaneSet].getLanes.toArray
+
+      for (laneAny <- lanes) {
+
+        val lane = laneAny.asInstanceOf[Lane]
+        val nodes = lane.getChildElementsByType(classOf[FlowNodeRef]).toArray
+        for (nodeAny <- nodes) {
+          val n = nodeAny.asInstanceOf[FlowNodeRef]
+          if (n.getTextContent == node.getId) {
+            return lane.getName
+          }
+        }
+      }
+
+      return "Unknown name"
+    }
+  }
   implicit class StartEventExtension(node: StartEvent) {
-    var nextNode: FlowNode = dictionary.get(node.getId)
+    def nextNode: FlowNode = dictionary.get(node.getId)
   }
 
   implicit class EndEventExtension(node: EndEvent) {
-    var nextNode: FlowNode = dictionary.get(node.getId)
+
+    def nextNode: FlowNode = dictionary.get(node.getId)
   }
 
   implicit class TaskExtension(node: Task) {
-    var nextNode: FlowNode = dictionary.get(node.getId)
+    def nextNode: FlowNode = {
+      dictionary.get(node.getId)
+    }
   }
 
-  implicit class ExclusiveGatewayExtension(gateway: ExclusiveGateway) {
+  implicit class ExclusiveGatewayExtension(val gateway: ExclusiveGateway) {
+
     def getConditionStrings: ArrayBuffer[String] = {
       val result = ArrayBuffer[String]()
       for (flow <- allFlows) {
@@ -86,3 +110,4 @@ object Extensions {
   }
 }
 
+class ProcessInformation()

@@ -1,7 +1,7 @@
 import java.net.InetSocketAddress
 import Extensions._
 import akka.actor.{Props, ActorRef, Actor}
-import akka.io.Tcp
+import akka.io.{IO, Tcp}
 
 import akka.io.Tcp._
 import akka.util.ByteString
@@ -21,22 +21,22 @@ class Client(socket: InetSocketAddress, listener: ActorRef) extends Actor {
   import Tcp._
   import context.system
 
-  var terminal: ActorRef = null // actor of terminal, we can send Write(ByteString) messages there and terminal will print them
+  var manager: ActorRef = null // actor of terminal (IO manager actor?) , we can send Write(ByteString) messages there and terminal will print them
   var fsm: ActorRef = null // current process (array of ActorRef in future????
 
-  def writelnInTerminal(s: String) = terminal ! Write(ByteString(s + "\n"))
+  def printInApplication(s: String) = manager ! Write(ByteString(s + "\n"))
 
   var name: String = null
 
-  //IO(Tcp) ! Connect(remote)
+  //IO(Tcp) ! Connect(socket)
 
   def receive = {
 
     case Commands.ClientConnected(t) =>
       println("Client connected")
-      terminal = t
+      manager = t
       name = socket.getPort.toString
-      terminal ! Write(ByteString("Your name: " + name + "\n"))
+      manager ! Write(ByteString("Your name: " + name + "\n"))
 
     case CommandFailed(_: Connect) =>
       listener ! "connect failed"
@@ -62,10 +62,15 @@ class Client(socket: InetSocketAddress, listener: ActorRef) extends Actor {
           val command2 = command.split(' ')(1)
 
           command1 match {
+            case "name" =>
+              printInApplication(name + " become " + command2)
+              listener ! Commands.ChangeName(name, command2)
+              name = command2
+
             case "start" => listener ! Commands.StartProcess(command2)
 
             // FSM commands
-            case "condition" =>
+            case "choose" =>
               fsm ! FsmCommands.WayChosen(command2)
 
             case "task" =>
@@ -91,7 +96,7 @@ class Client(socket: InetSocketAddress, listener: ActorRef) extends Actor {
         message += process + "\n"
       }
 
-      writelnInTerminal(message)
+      printInApplication(message)
     }
 
     case Connected => {
@@ -108,32 +113,32 @@ class Client(socket: InetSocketAddress, listener: ActorRef) extends Actor {
     case Commands.Fsm(ref) =>
       println("client get fsm!")
       fsm = ref
-      fsm ! FsmCommands.StartFSM
 
     case FsmCommands.StartTask(task) => {
-      writelnInTerminal("You must complete task: " + task.getName)
-
+      printInApplication("You must complete task: " + task.getName)
 
       task.nextNode match {
         case gateway: ExclusiveGateway => {
-          var message = "Type any condition (in format <condition yourChoosedWay>: \n"
+          var message = "Choose any condition (in format <choose yourChosenWay>: \n"
           for (condition <- gateway.getConditionStrings) {
             message += "<" + condition + ">\n"
           }
 
-          writelnInTerminal(message)
+          printInApplication(message)
         }
 
 
         case _ => {
-          writelnInTerminal("Type <task done>")
+          printInApplication("Type <task done>")
         }
       }
     }
 
     case FsmCommands.End => {
-      sender ! FsmCommands.End
-      writelnInTerminal("End process (Client)")
+      fsm ! FsmCommands.End
+      printInApplication("End process (Client)")
     }
+
+    case s: String => println(s)
   }
 }

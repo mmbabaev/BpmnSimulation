@@ -32,6 +32,8 @@ case object Commands {
 
   case class ClientConnected(terminal: ActorRef)
   case class Fsm(fsm: ActorRef)
+
+  case class ChangeName(oldName: String, name: String)
 }
 
 case class ComplexCommand(command1: String, command2: String)

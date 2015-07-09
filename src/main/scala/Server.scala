@@ -1,18 +1,20 @@
 import java.io.File
 import java.net.InetSocketAddress
 
-import akka.actor.{ActorSystem, Props, Actor}
+import akka.actor.{ActorRef, ActorSystem, Props, Actor}
 import akka.io.{IO, Tcp}
 import akka.util.ByteString
 import org.camunda.bpm.model.bpmn.Bpmn
 import org.camunda.bpm.model.bpmn.instance.StartEvent
 
+import scala.collection
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.parallel.mutable
+import collection.mutable.HashMap
 
 /**
  * Created by Mihail on 08.07.15.
  */
+
 object Server {
   def props(socket: InetSocketAddress, processesFileNames: ArrayBuffer[String]) = Props(classOf[Server], socket, processesFileNames)
 }
@@ -21,15 +23,16 @@ class Server(socket: InetSocketAddress, processesFileNames: ArrayBuffer[String])
   import context.system
 
   IO(Tcp) ! Bind(self, socket)
+  val clients = new HashMap[String, ActorRef]()
+
   println("Server start working")
 
   def receive = {
     case Commands.AvailableProcesses =>
-      println("receive Available processes")
       sender ! Commands.AvailableProcesses(processesFileNames)
 
     case b @ Bound(localAddress) =>
-      println("Server was bounded")
+      println("Server receive Bound(adress)")
 
     case CommandFailed(_: Bind) => context stop self
 
@@ -39,22 +42,33 @@ class Server(socket: InetSocketAddress, processesFileNames: ArrayBuffer[String])
 
       val client = context.actorOf(Client.props(remote, self))
 
+      clients.put(remote.getPort.toString, client)
+
       sender ! Register(client)
       client ! Commands.ClientConnected(sender)
+
+    case Commands.ChangeName(old, name) => {
+      val actor = clients(old)
+      clients.remove(old)
+      clients.put(name, actor)
+      println(old + " become " + name)
+    }
 
     case message: String => {
       println(message)
     }
 
     case Commands.StartProcess(processFileName) =>
-      var system = ActorSystem("MySystem")
+      val system = ActorSystem("MySystem")
 
-      var model = Bpmn.readModelFromFile(new File(processFileName))
+      val model = Bpmn.readModelFromFile(new File(processFileName))
       Extensions.loadDictionary(model)
 
       val startEvent = model.getModelElementById("start").asInstanceOf[StartEvent]
-      val fsm = context.actorOf(Props(new BpmnProcessFSM(startEvent)))
-      println("server almost end startprocess ")
-      sender ! Commands.Fsm(fsm)
+      val fsm = context.actorOf(BpmnProcessFSM.props(startEvent, clients))
+      for (client <- clients.values) {
+        client ! Commands.Fsm(fsm)
+      }
+      fsm ! FsmCommands.StartFSM
   }
 }
