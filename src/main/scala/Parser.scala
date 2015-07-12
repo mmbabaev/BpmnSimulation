@@ -1,5 +1,6 @@
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.Breaks._
+import scala.xml._
 /**
  * Created by Yaroslav on 09.07.15.
  */
@@ -87,6 +88,10 @@ class Parser (filePath : String) {
       val sequenceFlow = new SequenceFlow
       sequenceFlow.id = (i \ "@id").text
       sequenceFlow.name = (i \ "@name").text
+      val condition = i \ "conditionExpression"
+      if (condition.length == 1){
+        sequenceFlow.condition = condition.text
+      }
       val targetRef = (i \ "@targetRef").text
       val sourceRef = (i \ "@sourceRef").text
 
@@ -208,6 +213,7 @@ class Parser (filePath : String) {
       for (sequenceFlow <- sequenceFlows) {
         if (sequenceFlow.source.getId().equals(exclusiveGateWay.getId())) {
           exclusiveGateWay.nextNodes.append(sequenceFlow.target)
+          exclusiveGateWay.conditions.append(sequenceFlow.condition)
         }
       }
     }
@@ -361,6 +367,10 @@ object StartParser extends App{
       println("Id = " + exclusiveGateWay.getId())
       println("Name = " + exclusiveGateWay.getName())
       println("Lane = " + exclusiveGateWay.lane.id)
+      for(i <- exclusiveGateWay.conditions){
+        println("Condition = " + i)
+        println("NextNode  =  " + exclusiveGateWay.getNextNode(i))
+      }
       for (nextNode <- exclusiveGateWay.nextNodes){
         println("NextNode Id = " + nextNode.getId())
       }

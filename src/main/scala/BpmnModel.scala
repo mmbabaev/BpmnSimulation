@@ -39,12 +39,21 @@ trait ManyOutGoing extends FlowNode{
   def getNextNode(str: String): FlowNode
 }
 class ExclusiveGateWay extends  ManyOutGoing {
-
+  val conditions = new ArrayBuffer[String]()
   def getName(): String ={
     name
   }
   def getId() : String = {
     id
   }
-  def getNextNode(str: String): FlowNode = nextNodes(0)
+  def getNextNode(str: String): FlowNode = {
+    var count = 0
+    for (condition <- conditions){
+      if (str.equals(condition)){
+        return nextNodes(count)
+      }
+      count= count + 1
+    }
+    return nextNodes(count)
+  }
 }

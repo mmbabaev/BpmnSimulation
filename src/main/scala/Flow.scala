@@ -20,5 +20,5 @@ class Flow{
 }
 
 class SequenceFlow extends Flow{
-
+  var condition: String = null
 }
