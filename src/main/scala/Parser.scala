@@ -212,6 +212,7 @@ class Parser (filePath : String) {
     for (exclusiveGateWay <- exclusiveGateWays) {
       for (sequenceFlow <- sequenceFlows) {
         if (sequenceFlow.source.getId().equals(exclusiveGateWay.getId())) {
+          exclusiveGateWay.hashMap += sequenceFlow.condition -> sequenceFlow.target
           exclusiveGateWay.nextNodes.append(sequenceFlow.target)
           exclusiveGateWay.conditions.append(sequenceFlow.condition)
         }
