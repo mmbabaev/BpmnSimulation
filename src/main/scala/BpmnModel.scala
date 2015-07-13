@@ -1,3 +1,4 @@
+import scala.collection.immutable.HashMap
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -38,12 +39,15 @@ trait ManyOutGoing extends FlowNode {
   def getNextNode(str: String): FlowNode
 }
 class ExclusiveGateWay extends  ManyOutGoing {
-
+  val conditions = new ArrayBuffer[String]()
+  var hashMap = new HashMap[String, FlowNode]
   def getName(): String ={
     name
   }
   def getId() : String = {
     id
   }
-  def getNextNode(str: String): FlowNode = nextNodes(0)
+  def getNextNode(str: String): FlowNode = {
+    hashMap(str)
+  }
 }
