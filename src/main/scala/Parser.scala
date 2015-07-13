@@ -223,13 +223,15 @@ class Parser (filePath : String) {
   private def loadSetLane(process: BpmnProcess, node: NodeSeq): Unit = {
     val laneSets = node \ "laneSet"
     for (laneSet <- laneSets) {
-      process.setLane = new LaneSet
+      process.laneSet = new LaneSet
       val lanes = laneSets \ "lane"
       for (lane <- lanes) {
         val addLane = new Lane
         addLane.id = (lane \ "@id").text
         addLane.name = (lane \ "@name").text
-        process.setLane.lanes.append(addLane)
+        process.laneSet.lanes.append(addLane)
+        process.laneSet.laneNames.append(addLane.name)
+        process.laneSet.laneIds.append(addLane.id)
         val flowNodes = lane \ "flowNodeRef"
 
         for (flowNode <- flowNodes) {
@@ -318,8 +320,9 @@ object Parser{
     parser.bpmnModel
   }
 }
+
 object StartParser extends App{
-  val bpmnModel = Parser.getBpmnModel("my.bpmn")
+  val bpmnModel = Parser.getBpmnModel("my2.bpmn")
   for (process <- bpmnModel.processes){
     println("New Process start")
 

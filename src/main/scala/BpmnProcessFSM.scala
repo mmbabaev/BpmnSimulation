@@ -1,21 +1,19 @@
+
 import java.io.File
-import Extensions._
 import akka.actor.FSM.Event
 import akka.actor._
-import org.camunda.bpm.model.bpmn.Bpmn
-import org.camunda.bpm.model.bpmn.instance._
-import org.camunda.bpm.model.xml.instance.ModelElementInstance
+
+import scala.collection.mutable
 
 /**
  * Created by Mihail on 05.07.15.
  */
 
-
 object BpmnProcessFSM {
-  def props(start: StartEvent) = Props(new BpmnProcessFSM(start))
+  def props(start: StartEvent, clients: mutable.HashMap[String, ActorRef]) = Props(new BpmnProcessFSM(start, clients))
 }
 
-class BpmnProcessFSM(startNode: StartEvent) extends FSM[ProcessState, FlowNode] {
+class BpmnProcessFSM(startNode: StartEvent, clients: mutable.HashMap[String, ActorRef]) extends FSM[ProcessState, FlowNode] {
 
   startWith(Idle, startNode)
 
@@ -26,7 +24,7 @@ class BpmnProcessFSM(startNode: StartEvent) extends FSM[ProcessState, FlowNode] 
 
       next match {
         case task: Task => {
-          sender ! FsmCommands.StartTask(task)
+          clients(task.getLaneName) ! FsmCommands.StartTask(task)
         }
 
         case _ => println("unknown next")
@@ -39,21 +37,24 @@ class BpmnProcessFSM(startNode: StartEvent) extends FSM[ProcessState, FlowNode] 
   when(Active) {
 
     case Event(FsmCommands.End, _) => {
-      sender ! "Process was finished"
+      for(client <- clients.values) {
+        client ! "Process was finished"
+      }
+
       println("End event (fsm)")
       stop
     }
 
     case Event(FsmCommands.TaskComplete, task: Task) => {
-      sender ! task.getName + ": Task completed"
+      clients(task.getLaneName) ! task.getName + ": Task completed"
 
 
       val next = task.nextNode
 
       next match {
-        case task: Task => sender ! FsmCommands.StartTask(task)
+        case task: Task => clients(task.getLaneName) ! FsmCommands.StartTask(task)
         case end: EndEvent => {
-          sender ! FsmCommands.End
+          clients(end.getLaneName) ! FsmCommands.End
         }
       }
 
@@ -61,23 +62,27 @@ class BpmnProcessFSM(startNode: StartEvent) extends FSM[ProcessState, FlowNode] 
     }
 
     case Event(FsmCommands.WayChosen(answer), task: Task) => {
-      val gateway = task.nextNode.asInstanceOf[ExclusiveGateway]
+      val gateway = task.nextNode.asInstanceOf[ExclusiveGateWay]
       val next = gateway.getNextNode(answer)
 
       next match {
-        case task: Task => {
-          sender ! FsmCommands.StartTask(task)
-          println("task before gateway")
+        case t: Task => {
+          println("case task")
+          clients(t.getLaneName) ! FsmCommands.StartTask(t)
         }
+
         case end: EndEvent => {
-          sender ! FsmCommands.End
+          println("case end")
+          clients(end.getLaneName) ! FsmCommands.End
         }
       }
       stay using next
     }
 
-    case _ =>
-      println("Unknown command!")
+    case Event(s: String, _) =>
+
+      sender ! "Who are you"
+      println("Unknown command!" + s)
       stay()
   }
 }

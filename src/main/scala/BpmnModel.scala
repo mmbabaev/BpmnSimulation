@@ -1,22 +1,22 @@
 import scala.collection.immutable.HashMap
 import scala.collection.mutable.ArrayBuffer
 
+
 /**
  * Created by Yaroslav on 09.07.15.
  */
-class BpmnModel{
+class BpmnModel {
   val processes = new ArrayBuffer[BpmnProcess]()
 }
 
 class BpmnProcess (id : String){
   var startEvent: StartEvent = new StartEvent
-  var setLane: LaneSet = null
+  var laneSet: LaneSet = null
   val userTasks = new ArrayBuffer[UserTask]()
   val serviceTasks = new ArrayBuffer[ServiceTask]()
   val exclusiveGateWays = new ArrayBuffer[ExclusiveGateWay]()
   val sequenceFlows = new ArrayBuffer[SequenceFlow]()
   val endEvents = new ArrayBuffer[EndEvent]()
-  //val endEvents =
 
 }
 
@@ -26,6 +26,9 @@ trait FlowNode{
   def getName() : String
   def getId() : String
   var lane: Lane = null
+
+  def getLaneId = lane.id
+  def getLaneName = lane.name
 }
 
 
@@ -42,7 +45,7 @@ trait ManyOutGoing extends FlowNode{
 class ExclusiveGateWay extends  ManyOutGoing {
   val conditions = new ArrayBuffer[String]()
   var hashMap = new HashMap[String, FlowNode]
-  def getName(): String ={
+  def getName(): String = {
     name
   }
   def getId() : String = {
@@ -51,4 +54,6 @@ class ExclusiveGateWay extends  ManyOutGoing {
   def getNextNode(str: String): FlowNode = {
     hashMap(str)
   }
+
+  def getConditionStrings = conditions
 }
