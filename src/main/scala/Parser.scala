@@ -1,5 +1,6 @@
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.Breaks._
+
 /**
  * Created by Yaroslav on 09.07.15.
  */
@@ -311,6 +312,8 @@ object Parser{
     parser.bpmnModel
   }
 }
+
+
 object StartParser extends App{
   val bpmnModel = Parser.getBpmnModel("my.bpmn")
   for (process <- bpmnModel.processes){

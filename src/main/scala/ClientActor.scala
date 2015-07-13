@@ -3,10 +3,11 @@ import java.io.File
 import akka.actor.{Props, FSM, Actor}
 import org.camunda.bpm.model.bpmn.Bpmn._
 import org.camunda.bpm.model.bpmn.instance.{Task, ExclusiveGateway, StartEvent, FlowNode}
-import Extensions._
+//import Extensions._
 /**
  * Created by Mihail on 05.07.15.
  */
+
 object ClientActor {
   def props(startEvent: StartEvent) = Props(new ClientActor(startEvent))
 }
