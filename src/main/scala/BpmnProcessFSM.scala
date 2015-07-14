@@ -3,7 +3,13 @@ import java.io.File
 import akka.actor.FSM.Event
 import akka.actor._
 
+<<<<<<< HEAD
 import scala.collection.mutable
+=======
+//import org.camunda.bpm.model.bpmn.Bpmn
+//import org.camunda.bpm.model.bpmn.instance._
+//import org.camunda.bpm.model.xml.instance.ModelElementInstance
+>>>>>>> 90170174f13f4a37be12e7fc38dcac2f5c7dffee
 
 /**
  * Created by Mihail on 05.07.15.

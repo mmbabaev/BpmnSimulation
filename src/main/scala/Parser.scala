@@ -1,6 +1,10 @@
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.Breaks._
+<<<<<<< HEAD
+
+=======
 import scala.xml._
+>>>>>>> origin/master
 /**
  * Created by Yaroslav on 09.07.15.
  */
@@ -321,6 +325,10 @@ object Parser{
   }
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 90170174f13f4a37be12e7fc38dcac2f5c7dffee
 object StartParser extends App{
   val bpmnModel = Parser.getBpmnModel("my2.bpmn")
   for (process <- bpmnModel.processes){

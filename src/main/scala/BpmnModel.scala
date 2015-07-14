@@ -9,7 +9,7 @@ class BpmnModel {
   val processes = new ArrayBuffer[BpmnProcess]()
 }
 
-class BpmnProcess (id : String){
+class BpmnProcess (id : String) {
   var startEvent: StartEvent = new StartEvent
   var laneSet: LaneSet = null
   val userTasks = new ArrayBuffer[UserTask]()
@@ -20,7 +20,7 @@ class BpmnProcess (id : String){
 
 }
 
-trait FlowNode{
+trait FlowNode {
   var id: String = null
   var name: String = null
   def getName() : String
@@ -38,7 +38,7 @@ trait OneOutGoing extends FlowNode{
   def getNextNode : FlowNode
 }
 
-trait ManyOutGoing extends FlowNode{
+trait ManyOutGoing extends FlowNode {
   var nextNodes: ArrayBuffer[FlowNode] = new ArrayBuffer[FlowNode]()
   def getNextNode(str: String): FlowNode
 }

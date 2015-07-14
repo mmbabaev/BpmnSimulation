@@ -1,6 +1,8 @@
 /**
  * Created by Yaroslav on 09.07.15.
  */
+import scala.xml._
+
 class Event extends OneOutGoing{
   def getName(): String ={
     name
